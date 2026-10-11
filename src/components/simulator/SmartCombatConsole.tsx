@@ -64,7 +64,12 @@ export const SmartCombatConsole: React.FC<SmartCombatConsoleProps> = ({
     resumeSimulation,
     masterArm,
     toggleMasterArm,
-    setMasterArm
+    setMasterArm,
+    hudMode,
+    setHudMode,
+    cycleHudMode,
+    juryAutoPilot,
+    toggleJuryAutoPilot
   } = useSimulator();
 
   const [radarRangeScale, setRadarRangeScale] = useState<number>(2500);
@@ -73,6 +78,22 @@ export const SmartCombatConsole: React.FC<SmartCombatConsoleProps> = ({
   // Tactical Warning & Recoil Visual States
   const [armWarningFlash, setArmWarningFlash] = useState<boolean>(false);
   const [fireKickAnim, setFireKickAnim] = useState<boolean>(false);
+
+  // Keyboard hotkeys for HUD Mode [H] and Jury Auto-Pilot [P]
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key.toLowerCase() === 'h') {
+        e.preventDefault();
+        cycleHudMode();
+      } else if (e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        toggleJuryAutoPilot();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [cycleHudMode, toggleJuryAutoPilot]);
 
   // Active flying drones
   const activeDrones = drones.filter(d => d.status === 'flying');
@@ -95,7 +116,6 @@ export const SmartCombatConsole: React.FC<SmartCombatConsoleProps> = ({
   };
 
   const recommendedWeaponId = selectedSpec ? getRecommendedWeaponId(selectedSpec.id) : null;
-  const isRecommendedActive = recommendedWeaponId === selectedWeaponId;
 
   // Range calculation
   const isTargetInRange = selectedDrone && activeWeapon
@@ -141,7 +161,7 @@ export const SmartCombatConsole: React.FC<SmartCombatConsoleProps> = ({
   const remainingTime = Math.max(0, activeScenario.timeLimitSec - elapsedTimeSec);
 
   // Recent tactical event
-  const latestEvent = eventLogs.length > 0 ? eventLogs[eventLogs.length - 1] : null;
+  const latestEvent = eventLogs.length > 0 ? eventLogs[0] : null;
 
   // Calculate closure rate (Vc in m/s) and time to breach (Tgo in sec)
   const calculateKinematics = (drone: typeof drones[0]) => {
@@ -161,6 +181,11 @@ export const SmartCombatConsole: React.FC<SmartCombatConsoleProps> = ({
     const tgo = vc > 0.5 ? Math.max(0, Math.round((dist / vc) * 10) / 10) : 999;
     return { vc, tgo };
   };
+
+  // Locked drone azimuth for Radar Kill-Zone Sector Cone
+  const lockedAzimuthDeg = selectedDrone
+    ? ((Math.atan2(selectedDrone.position[0], -selectedDrone.position[2]) * 180) / Math.PI + 360) % 360
+    : radarSweepDeg;
 
   return (
     <div className={`absolute inset-0 pointer-events-none flex flex-col justify-between p-3 select-none overflow-hidden font-mono z-10 ${fireKickAnim ? 'animate-weapon-kick' : ''}`}>
@@ -367,7 +392,15 @@ export const SmartCombatConsole: React.FC<SmartCombatConsoleProps> = ({
       {/* ========================================================= */}
       <div className="flex items-start justify-between w-full pointer-events-none my-auto">
         {/* Left Floating Deck: Compact Radar & Sensor Modes */}
-        <div className="pointer-events-auto flex flex-col gap-1.5 w-48">
+        <div
+          className={`pointer-events-auto flex flex-col gap-1.5 w-48 transition-all duration-300 ease-out ${
+            hudMode === 'cinematic'
+              ? '-translate-x-64 opacity-0 pointer-events-none'
+              : hudMode === 'tactical'
+                ? 'scale-95 origin-top-left'
+                : 'translate-x-0 opacity-100'
+          }`}
+        >
           {/* Sensor Optic Switcher Strip */}
           <div className="glass-panel-obsidian p-1.5 rounded-lg shadow-xl flex flex-col gap-1 clip-chamfer-sm">
             <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wider px-0.5 flex justify-between">
@@ -418,12 +451,12 @@ export const SmartCombatConsole: React.FC<SmartCombatConsoleProps> = ({
             </div>
           </div>
 
-          {/* Mini Interactive PPI Radar Scope (Scaled to 144x144px) */}
+          {/* Mini Interactive PPI Radar Scope with Active Kill-Zone Sector Cone */}
           <div className="glass-panel-obsidian p-2 rounded-lg shadow-xl flex flex-col items-center clip-chamfer-corner">
             <div className="w-full flex items-center justify-between pb-1 border-b border-cyan-500/20 text-[9px] text-cyan-400 font-bold">
               <span className="flex items-center gap-1">
                 <Radio className="w-2.5 h-2.5 text-cyan-400 animate-pulse" />
-                AESA PPI
+                AESA + KILL CONE
               </span>
 
               {/* Range Scale Toggle */}
@@ -460,6 +493,23 @@ export const SmartCombatConsole: React.FC<SmartCombatConsoleProps> = ({
               {/* Crosshair lines */}
               <div className="absolute inset-x-0 top-1/2 h-px bg-cyan-500/20" />
               <div className="absolute inset-y-0 left-1/2 w-px bg-cyan-500/20" />
+
+              {/* Active Weapon Kill-Zone Sector Cone (SVG Overlay) */}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 144 144">
+                <g transform={`rotate(${lockedAzimuthDeg} 72 72)`}>
+                  <path
+                    d="M 72 72 L 54 6 A 68 68 0 0 1 90 6 Z"
+                    fill={
+                      activeWeapon?.category === 'soft_kill'
+                        ? 'rgba(34, 211, 238, 0.22)'
+                        : 'rgba(244, 63, 94, 0.22)'
+                    }
+                    stroke={activeWeapon?.category === 'soft_kill' ? '#22d3ee' : '#f43f5e'}
+                    strokeWidth="1"
+                    strokeDasharray="3 2"
+                  />
+                </g>
+              </svg>
 
               {/* Cardinal Labels */}
               <span className="absolute top-0.5 text-[7px] text-cyan-400 font-bold">N</span>
@@ -522,7 +572,7 @@ export const SmartCombatConsole: React.FC<SmartCombatConsoleProps> = ({
 
             <div className="w-full flex justify-between text-[8px] text-slate-400 px-0.5 font-mono">
               <span>{radarContacts.length} TRK</span>
-              <span className="text-cyan-400 font-bold">{Math.round(radarSweepDeg).toString().padStart(3, '0')}°</span>
+              <span className="text-cyan-400 font-bold">CONE {Math.round(lockedAzimuthDeg).toString().padStart(3, '0')}°</span>
               <span className="text-emerald-400 cursor-pointer hover:underline" onClick={() => setShowExpandedRadar(true)}>
                 EXPAND
               </span>
@@ -530,7 +580,16 @@ export const SmartCombatConsole: React.FC<SmartCombatConsoleProps> = ({
           </div>
         </div>
 
-        {/* Right Floating Deck: Target FLIR Reconnaissance Pod & AI Weapon Recommendation */}
+        {/* Right Floating Deck: Target FLIR Reconnaissance Pod + PiP Optical Cam */}
+        <div
+          className={`transition-all duration-300 ease-out ${
+            hudMode === 'cinematic'
+              ? 'translate-x-72 opacity-0 pointer-events-none'
+              : hudMode === 'tactical'
+                ? 'scale-95 origin-top-right'
+                : 'translate-x-0 opacity-100'
+          }`}
+        >
         {selectedDrone && selectedSpec ? (
           <div
             key={`inspector-${selectedDrone.instanceId}`}
@@ -552,6 +611,86 @@ export const SmartCombatConsole: React.FC<SmartCombatConsoleProps> = ({
               >
                 UNLOCK
               </button>
+            </div>
+
+            {/* Picture-in-Picture (PiP) Optical FLIR Target Cam */}
+            <div className="rounded-lg bg-[#021210] border border-emerald-500/40 p-1.5 relative overflow-hidden">
+              <div className="flex items-center justify-between text-[8px] font-mono mb-1">
+                <span className="text-emerald-400 font-bold flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
+                  EO/FLIR PIP ZOOM (12X)
+                </span>
+                <span className="text-cyan-300 bg-cyan-950/80 px-1 rounded border border-cyan-500/30">
+                  IR LOCK: {Math.round(280 + selectedSpec.thermalSignature * 140)}°C
+                </span>
+              </div>
+
+              <div className="h-20 flex items-center justify-center relative">
+                <svg width="210" height="76" viewBox="0 0 210 76" className="overflow-visible">
+                  {/* Optical Reticle Corner Brackets */}
+                  <path
+                    d="M 12 18 L 12 8 L 24 8 M 198 18 L 198 8 L 186 8 M 12 58 L 12 68 L 24 68 M 198 58 L 198 68 L 186 68"
+                    stroke="#10b981"
+                    strokeWidth="1.4"
+                    fill="none"
+                  />
+                  {/* Center Crosshair */}
+                  <line x1="85" y1="38" x2="125" y2="38" stroke="#10b981" strokeWidth="0.8" strokeOpacity="0.6" />
+                  <line x1="105" y1="18" x2="105" y2="58" stroke="#10b981" strokeWidth="0.8" strokeOpacity="0.6" />
+
+                  {/* Dynamic Silhouette Based on Drone Category */}
+                  {selectedSpec.category === 'loitering_munition' ? (
+                    <g>
+                      {/* Shahed-136 Delta Wing Silhouette */}
+                      <polygon
+                        points="105,10 152,60 105,50 58,60"
+                        fill="rgba(16, 185, 129, 0.22)"
+                        stroke="#34d399"
+                        strokeWidth="1.6"
+                      />
+                      {/* Rear Pusher Engine Thermal Plume */}
+                      <circle cx="105" cy="54" r="5" fill="#f43f5e" />
+                      <circle cx="105" cy="54" r="10" stroke="#f43f5e" strokeWidth="1" strokeDasharray="2 2" fill="none" />
+                    </g>
+                  ) : selectedSpec.category === 'heavy_hexacopter' ? (
+                    <g>
+                      {/* 6-Rotor Heavy Hexacopter */}
+                      <line x1="65" y1="20" x2="145" y2="56" stroke="#34d399" strokeWidth="1.6" />
+                      <line x1="145" y1="20" x2="65" y2="56" stroke="#34d399" strokeWidth="1.6" />
+                      <line x1="55" y1="38" x2="155" y2="38" stroke="#34d399" strokeWidth="1.6" />
+                      <circle cx="105" cy="38" r="10" fill="rgba(16,185,129,0.3)" stroke="#34d399" strokeWidth="1.5" />
+                      {[
+                        [65, 20],
+                        [145, 56],
+                        [145, 20],
+                        [65, 56],
+                        [55, 38],
+                        [155, 38]
+                      ].map(([cx, cy], idx) => (
+                        <circle key={idx} cx={cx} cy={cy} r="6" stroke="#22d3ee" strokeWidth="1.2" strokeDasharray="3 2" fill="rgba(244,63,94,0.35)" />
+                      ))}
+                    </g>
+                  ) : (
+                    <g>
+                      {/* Quadcopter / FPV Silhouette */}
+                      <line x1="72" y1="18" x2="138" y2="58" stroke="#34d399" strokeWidth="1.8" />
+                      <line x1="138" y1="18" x2="72" y2="58" stroke="#34d399" strokeWidth="1.8" />
+                      <rect x="96" y="30" width="18" height="16" rx="3" fill="rgba(16,185,129,0.28)" stroke="#34d399" strokeWidth="1.5" />
+                      {[
+                        [72, 18],
+                        [138, 18],
+                        [72, 58],
+                        [138, 58]
+                      ].map(([cx, cy], idx) => (
+                        <g key={idx}>
+                          <circle cx={cx} cy={cy} r="8" stroke="#22d3ee" strokeWidth="1.2" strokeDasharray="4 2" fill="none" />
+                          <circle cx={cx} cy={cy} r="2.5" fill="#f43f5e" />
+                        </g>
+                      ))}
+                    </g>
+                  )}
+                </svg>
+              </div>
             </div>
 
             {/* Telemetry Grid */}
@@ -595,12 +734,14 @@ export const SmartCombatConsole: React.FC<SmartCombatConsoleProps> = ({
               </div>
             </div>
 
-            {/* Live Acoustic & RF Signature Oscilloscope */}
-            <AcousticRFScope
-              spec={selectedSpec}
-              distanceMeters={selectedDrone.distanceToBase}
-              rfNoiseLevel={activeScenario.rfNoiseLevel}
-            />
+            {/* Live Acoustic & RF Signature Oscilloscope (Full mode only to keep Tactical compact) */}
+            {hudMode === 'full' && (
+              <AcousticRFScope
+                spec={selectedSpec}
+                distanceMeters={selectedDrone.distanceToBase}
+                rfNoiseLevel={activeScenario.rfNoiseLevel}
+              />
+            )}
 
             {/* AI Doctrine Recommendation Card */}
             <div className="bg-amber-950/40 border border-amber-500/60 p-2 rounded-lg space-y-1 clip-chamfer-sm">
@@ -627,27 +768,29 @@ export const SmartCombatConsole: React.FC<SmartCombatConsoleProps> = ({
             </div>
 
             {/* Quick 1-Click Classification Buttons */}
-            <div className="space-y-1">
-              <span className="text-[8px] text-slate-400 font-bold block">INTEL CLASSIFICATION:</span>
-              <div className="grid grid-cols-3 gap-1 text-[8px]">
-                {[
-                  { id: 'micro_quadcopter', label: 'MAVIC' },
-                  { id: 'fpv_kamikaze', label: 'FPV' },
-                  { id: 'loitering_munition', label: 'SHAHED' },
-                  { id: 'heavy_hexacopter', label: 'HEXACOP' },
-                  { id: 'swarm_member', label: 'SWARM' },
-                  { id: 'decoy_drone', label: 'DECOY' }
-                ].map(cat => (
-                  <button
-                    key={cat.id}
-                    onClick={() => classifyDrone(selectedDrone.instanceId, cat.id as DroneCategory)}
-                    className="btn-tactical-interactive bg-slate-900/90 hover:bg-cyan-950 border border-slate-800 hover:border-cyan-500 py-0.5 px-1 rounded text-slate-300 hover:text-cyan-300 transition-all font-mono truncate clip-chamfer-sm"
-                  >
-                    {cat.label}
-                  </button>
-                ))}
+            {hudMode === 'full' && (
+              <div className="space-y-1">
+                <span className="text-[8px] text-slate-400 font-bold block">INTEL CLASSIFICATION:</span>
+                <div className="grid grid-cols-3 gap-1 text-[8px]">
+                  {[
+                    { id: 'micro_quadcopter', label: 'MAVIC' },
+                    { id: 'fpv_kamikaze', label: 'FPV' },
+                    { id: 'loitering_munition', label: 'SHAHED' },
+                    { id: 'heavy_hexacopter', label: 'HEXACOP' },
+                    { id: 'swarm_member', label: 'SWARM' },
+                    { id: 'decoy_drone', label: 'DECOY' }
+                  ].map(cat => (
+                    <button
+                      key={cat.id}
+                      onClick={() => classifyDrone(selectedDrone.instanceId, cat.id as DroneCategory)}
+                      className="btn-tactical-interactive bg-slate-900/90 hover:bg-cyan-950 border border-slate-800 hover:border-cyan-500 py-0.5 px-1 rounded text-slate-300 hover:text-cyan-300 transition-all font-mono truncate clip-chamfer-sm"
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         ) : (
           <div className="pointer-events-auto w-56 glass-panel-obsidian p-2.5 rounded-xl shadow-xl text-[10px] text-slate-400 space-y-1.5 clip-chamfer-corner border border-cyan-500/20 animate-slide-in-right holo-scan-overlay">
@@ -666,6 +809,7 @@ export const SmartCombatConsole: React.FC<SmartCombatConsoleProps> = ({
             </button>
           </div>
         )}
+        </div>
       </div>
 
       {/* ========================================================= */}
@@ -673,12 +817,14 @@ export const SmartCombatConsole: React.FC<SmartCombatConsoleProps> = ({
       {/* ========================================================= */}
       <div className="flex flex-col items-center gap-1 pointer-events-auto w-full max-w-4xl mx-auto animate-panel-enter">
         <div className="w-full glass-panel-obsidian p-1.5 rounded-xl shadow-2xl flex flex-col gap-1.5 clip-chamfer-corner border border-cyan-500/30 holo-scan-overlay">
-          {/* Tactical Weapon Station Pylons */}
+          {/* Tactical Weapon Station Pylons with 10-Segment LED Capacitor Bars */}
           <div className="grid grid-cols-3 lg:grid-cols-6 gap-1.5">
             {Object.values(weapons).map((weapon, idx) => {
               const isSelected = weapon.id === selectedWeaponId;
               const isRecommended = weapon.id === recommendedWeaponId;
               const inRange = selectedDrone ? selectedDrone.distanceToBase <= weapon.effectiveRange : true;
+              const fillRatio = weapon.ammoCapacity === -1 ? 1 : weapon.currentAmmo / weapon.ammoCapacity;
+              const activeSegments = Math.round(fillRatio * 8);
 
               return (
                 <button
@@ -720,16 +866,23 @@ export const SmartCombatConsole: React.FC<SmartCombatConsoleProps> = ({
                     </span>
                   </div>
 
-                  {/* Visual Energy / Ammo Mini Bar */}
-                  <div className="w-full bg-slate-950 h-0.5 rounded mt-0.5 overflow-hidden">
-                    <div 
-                      className={`h-full transition-all duration-300 ${weapon.category === 'soft_kill' ? 'bg-cyan-400' : 'bg-rose-500'}`}
-                      style={{ 
-                        width: weapon.ammoCapacity === -1 
-                          ? '100%' 
-                          : `${(weapon.currentAmmo / weapon.ammoCapacity) * 100}%` 
-                      }}
-                    />
+                  {/* 8-Segment LED Capacitor Array */}
+                  <div className="grid grid-cols-8 gap-0.5 mt-1">
+                    {Array.from({ length: 8 }).map((_, segIdx) => {
+                      const lit = segIdx < activeSegments;
+                      return (
+                        <div
+                          key={segIdx}
+                          className={`h-1.5 rounded-[1px] transition-all ${
+                            !lit
+                              ? 'bg-slate-800/80'
+                              : weapon.category === 'soft_kill'
+                                ? 'bg-cyan-400 shadow-[0_0_4px_rgba(34,211,238,0.6)]'
+                                : 'bg-rose-500 shadow-[0_0_4px_rgba(244,63,94,0.6)]'
+                          }`}
+                        />
+                      );
+                    })}
                   </div>
                 </button>
               );

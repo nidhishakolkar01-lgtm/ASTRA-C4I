@@ -69,6 +69,11 @@ interface SimulatorContextType {
   voiceCommsEnabled: boolean;
   toggleVoiceComms: () => void;
   hitmarkerActive: boolean;
+  hudMode: 'full' | 'tactical' | 'cinematic';
+  setHudMode: (mode: 'full' | 'tactical' | 'cinematic') => void;
+  cycleHudMode: () => void;
+  juryAutoPilot: boolean;
+  toggleJuryAutoPilot: () => void;
 }
 
 const DEFAULT_TRAINEE: TraineeProfile = {
@@ -118,6 +123,8 @@ export const SimulatorProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [voiceCommsEnabled, setVoiceCommsEnabled] = useState<boolean>(true);
   const [hitmarkerActive, setHitmarkerActive] = useState<boolean>(false);
   const [masterArm, setMasterArm] = useState<'SAFE' | 'ARMED'>('SAFE');
+  const [hudMode, setHudMode] = useState<'full' | 'tactical' | 'cinematic'>('full');
+  const [juryAutoPilot, setJuryAutoPilot] = useState<boolean>(false);
 
   const radarHistoryRef = useRef<MissionResult['radarTrackHistory']>([]);
   const elapsedTimeRef = useRef<number>(0);
@@ -884,6 +891,88 @@ export const SimulatorProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     });
   };
 
+  const cycleHudMode = useCallback(() => {
+    setHudMode(prev => (prev === 'full' ? 'tactical' : prev === 'tactical' ? 'cinematic' : 'full'));
+    soundManager.playTargetLock();
+  }, []);
+
+  const toggleJuryAutoPilot = useCallback(() => {
+    setJuryAutoPilot(prev => {
+      const next = !prev;
+      if (next) {
+        setMasterArm('ARMED');
+        voiceComms.speak('ASTRA AI Auto-Commander engaged. Autonomous target acquisition active.', 'urgent');
+      } else {
+        voiceComms.speak('Manual C4I operator control restored.', 'normal');
+      }
+      return next;
+    });
+  }, []);
+
+  // Jury Auto-Pilot AI Commander loop
+  useEffect(() => {
+    if (!juryAutoPilot || missionState !== 'RUNNING') return;
+    const timer = setInterval(() => {
+      const currentDrones = drones.filter(d => d.status === 'flying');
+      if (currentDrones.length === 0) return;
+
+      // Sort by highest priority (closest to base / loitering munition)
+      const sorted = [...currentDrones].sort((a, b) => {
+        const aCat = DRONE_DATABASE[a.specId]?.category;
+        const bCat = DRONE_DATABASE[b.specId]?.category;
+        const aLoiter = aCat === 'loitering_munition' ? -450 : 0;
+        const bLoiter = bCat === 'loitering_munition' ? -450 : 0;
+        return (a.distanceToBase + aLoiter) - (b.distanceToBase + bLoiter);
+      });
+
+      const primary = sorted[0];
+      const primarySpec = DRONE_DATABASE[primary.specId];
+      if (selectedDroneId !== primary.instanceId) {
+        setSelectedDroneId(primary.instanceId);
+      }
+
+      // Auto-classify when in sensor range
+      if ((!primary.classifiedAs || primary.classifiedAs === 'unknown') && primary.distanceToBase < 3800 && primarySpec) {
+        classifyDrone(primary.instanceId, primarySpec.category);
+      }
+
+      // Pick doctrinally optimal weapon and engage
+      const nearbyCount = currentDrones.filter(d => d.distanceToBase < 800).length;
+      let chosenWeapon = 'rf_jammer_directional';
+
+      if (nearbyCount >= 3 && (weapons['hpm_emp_emitter']?.currentAmmo ?? 0) > 0 && primary.distanceToBase <= 800) {
+        chosenWeapon = 'hpm_emp_emitter';
+      } else if (
+        primarySpec &&
+        (primarySpec.category === 'loitering_munition' || primarySpec.category === 'fpv_kamikaze') &&
+        primary.distanceToBase <= 1800
+      ) {
+        chosenWeapon = 'laser_dew_system';
+      } else if (
+        primarySpec &&
+        primarySpec.category === 'heavy_hexacopter' &&
+        primary.distanceToBase <= 2400 &&
+        (weapons['ciws_30mm_autocannon']?.currentAmmo ?? 0) > 0
+      ) {
+        chosenWeapon = 'ciws_30mm_autocannon';
+      } else if (primary.distanceToBase <= 1500) {
+        chosenWeapon = 'rf_jammer_directional';
+      } else if (primary.distanceToBase <= 2000) {
+        chosenWeapon = 'gps_spoofer_nav';
+      } else if (primary.distanceToBase <= 2500) {
+        chosenWeapon = 'ciws_30mm_autocannon';
+      }
+
+      setSelectedWeaponId(chosenWeapon);
+      const wSpec = weapons[chosenWeapon];
+      if (wSpec && primary.distanceToBase <= wSpec.effectiveRange) {
+        fireWeapon(primary.instanceId, true);
+      }
+    }, 1350);
+
+    return () => clearInterval(timer);
+  }, [juryAutoPilot, missionState, drones, weapons, selectedDroneId]);
+
   return (
     <SimulatorContext.Provider
       value={{
@@ -924,7 +1013,12 @@ export const SimulatorProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         toggleSound,
         voiceCommsEnabled,
         toggleVoiceComms,
-        hitmarkerActive
+        hitmarkerActive,
+        hudMode,
+        setHudMode,
+        cycleHudMode,
+        juryAutoPilot,
+        toggleJuryAutoPilot
       }}
     >
       {children}

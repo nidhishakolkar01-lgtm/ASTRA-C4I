@@ -52,7 +52,9 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
     selectedWeaponId,
     weapons,
     fireWeapon,
-    hitmarkerActive
+    hitmarkerActive,
+    juryAutoPilot,
+    radarSweepDeg
   } = useSimulator();
 
   const [internalCameraMode, setInternalCameraMode] = useState<CameraViewMode>('orbit');
@@ -791,6 +793,51 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
 
         <div ref={vrButtonContainerRef} className="shadow-lg scale-90 origin-left" />
       </div>
+
+      {/* AI Auto-Commander Active HUD Banner */}
+      {juryAutoPilot && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex items-center gap-2 px-3 py-1 rounded bg-amber-500/20 border border-amber-400/60 backdrop-blur-md text-amber-200 font-mono text-[10px] font-bold shadow-lg">
+          <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+          <span>ASTRA AI AUTO-COMMANDER ACTIVE • AUTONOMOUS LOCK & INTERCEPT</span>
+        </div>
+      )}
+
+      {/* Always-On Aerospace SVG Artificial Horizon Pitch Ladder & Boresight Reticle */}
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none z-10"
+        viewBox="0 0 1000 600"
+        preserveAspectRatio="xMidYMid slice"
+      >
+        {/* Horizon Reference Bars */}
+        <line x1="360" y1="300" x2="445" y2="300" stroke="#22d3ee" strokeWidth="1.2" strokeOpacity="0.35" strokeDasharray="6 4" />
+        <line x1="555" y1="300" x2="640" y2="300" stroke="#22d3ee" strokeWidth="1.2" strokeOpacity="0.35" strokeDasharray="6 4" />
+
+        {/* +10 deg Pitch Rung */}
+        <path d="M 430 225 L 460 225 L 460 232 M 570 225 L 540 225 L 540 232" stroke="#22d3ee" strokeWidth="1.2" strokeOpacity="0.4" fill="none" />
+        <text x="405" y="229" fill="#22d3ee" fontSize="10" fontFamily="monospace" opacity="0.55">+10</text>
+        <text x="576" y="229" fill="#22d3ee" fontSize="10" fontFamily="monospace" opacity="0.55">+10</text>
+
+        {/* +5 deg Pitch Rung */}
+        <path d="M 445 262 L 465 262 L 465 267 M 555 262 L 535 262 L 535 267" stroke="#22d3ee" strokeWidth="1.2" strokeOpacity="0.35" fill="none" />
+
+        {/* -5 deg Pitch Rung */}
+        <path d="M 445 338 L 465 338 L 465 333 M 555 338 L 535 338 L 535 333" stroke="#22d3ee" strokeWidth="1.2" strokeOpacity="0.35" strokeDasharray="3 2" fill="none" />
+
+        {/* -10 deg Pitch Rung */}
+        <path d="M 430 375 L 460 375 L 460 368 M 570 375 L 540 375 L 540 368" stroke="#22d3ee" strokeWidth="1.2" strokeOpacity="0.4" strokeDasharray="3 2" fill="none" />
+        <text x="405" y="379" fill="#22d3ee" fontSize="10" fontFamily="monospace" opacity="0.55">-10</text>
+        <text x="576" y="379" fill="#22d3ee" fontSize="10" fontFamily="monospace" opacity="0.55">-10</text>
+
+        {/* Center Boresight Pipper */}
+        <circle cx="500" cy="300" r="18" stroke="#22d3ee" strokeWidth="1" strokeOpacity="0.45" fill="none" />
+        <line x1="474" y1="300" x2="490" y2="300" stroke="#22d3ee" strokeWidth="1.3" strokeOpacity="0.6" />
+        <line x1="510" y1="300" x2="526" y2="300" stroke="#22d3ee" strokeWidth="1.3" strokeOpacity="0.6" />
+        <line x1="500" y1="274" x2="500" y2="290" stroke="#22d3ee" strokeWidth="1.3" strokeOpacity="0.6" />
+        <line x1="500" y1="310" x2="500" y2="326" stroke="#22d3ee" strokeWidth="1.3" strokeOpacity="0.6" />
+        <text x="524" y="318" fill="#22d3ee" fontSize="9" fontFamily="monospace" opacity="0.6">
+          AZ {Math.round(radarSweepDeg).toString().padStart(3, '0')}°
+        </text>
+      </svg>
 
       {/* Center Gunsight Overlay for Gunner Sight Mode */}
       {cameraMode === 'gunner' && (

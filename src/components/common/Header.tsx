@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSimulator } from '../../context/SimulatorContext';
-import { Shield, Volume2, VolumeX, Mic, MicOff, User, Play, Award, Sliders, Bot, BookOpen, Radio, Activity, Clock } from 'lucide-react';
+import { Shield, Volume2, VolumeX, Mic, MicOff, User, Play, Award, Sliders, Bot, BookOpen, Radio, Clock, Eye, Cpu } from 'lucide-react';
 
 interface Props {
   activeView: 'SIMULATOR' | 'AAR' | 'STUDIO' | 'INSTRUCTOR' | 'AI_ADVISOR' | 'MANUAL';
@@ -14,7 +14,11 @@ export const Header: React.FC<Props> = ({ activeView, setActiveView }) => {
     soundMuted, 
     toggleSound,
     voiceCommsEnabled,
-    toggleVoiceComms 
+    toggleVoiceComms,
+    hudMode,
+    setHudMode,
+    juryAutoPilot,
+    toggleJuryAutoPilot
   } = useSimulator();
   
   const [showEditProfile, setShowEditProfile] = useState(false);
@@ -89,7 +93,7 @@ export const Header: React.FC<Props> = ({ activeView, setActiveView }) => {
         </div>
 
         {/* Tactical Mission Clocks */}
-        <div className="hidden xl:flex items-center gap-2 bg-slate-900/80 border border-cyan-500/20 px-2.5 py-0.5 rounded clip-chamfer-sm text-[10px]">
+        <div className="hidden 2xl:flex items-center gap-2 bg-slate-900/80 border border-cyan-500/20 px-2.5 py-0.5 rounded clip-chamfer-sm text-[10px]">
           <Clock className="w-3 h-3 text-cyan-400" />
           <div className="flex items-center gap-1.5 font-mono text-[10px]">
             <span className="text-slate-400">ZULU: <strong className="text-cyan-300 font-bold">{zuluTime}</strong></span>
@@ -173,17 +177,42 @@ export const Header: React.FC<Props> = ({ activeView, setActiveView }) => {
           </button>
         </nav>
 
-        {/* Trainee Profile & Tactical Audio Comms */}
+        {/* HUD Declutter Mode Switcher & Jury Auto-Pilot + Audio Controls */}
         <div className="flex items-center gap-1.5">
-          {/* Audio Telemetry Equalizer Bars */}
-          {!soundMuted && (
-            <div className="hidden md:flex items-end gap-0.5 h-4 px-1 py-0.5 bg-slate-950/70 border border-cyan-500/30 rounded" title="Audio Telemetry Active">
-              <span className="w-0.5 bg-cyan-400 h-1.5 animate-pulse" />
-              <span className="w-0.5 bg-cyan-400 h-3 animate-bounce" />
-              <span className="w-0.5 bg-cyan-400 h-2 animate-pulse" />
-              <span className="w-0.5 bg-emerald-400 h-3.5 animate-bounce" />
-              <span className="w-0.5 bg-cyan-400 h-1.5 animate-pulse" />
+          {/* 3-Mode HUD Declutter Switcher (Visible in Simulator view) */}
+          {activeView === 'SIMULATOR' && (
+            <div className="hidden md:flex items-center bg-slate-950/90 border border-cyan-500/30 rounded p-0.5 gap-0.5" title="Switch HUD Declutter Mode [Key: H]">
+              <Eye className="w-3 h-3 text-cyan-400 mx-1" />
+              {(['full', 'tactical', 'cinematic'] as const).map(mode => (
+                <button
+                  key={mode}
+                  onClick={() => setHudMode(mode)}
+                  className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase transition-all ${
+                    hudMode === mode
+                      ? 'bg-cyan-500/25 text-cyan-200 border border-cyan-400/60 shadow'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  {mode === 'full' ? 'FULL' : mode === 'tactical' ? 'TACTICAL' : 'CLEAR'}
+                </button>
+              ))}
             </div>
+          )}
+
+          {/* 1-Click Jury Auto-Pilot AI Commander Toggle */}
+          {activeView === 'SIMULATOR' && (
+            <button
+              onClick={toggleJuryAutoPilot}
+              className={`flex items-center gap-1 px-2 py-1 rounded border text-[10px] font-bold transition-all clip-chamfer-sm ${
+                juryAutoPilot
+                  ? 'bg-amber-500/25 border-amber-400 text-amber-200 glow-amber animate-pulse'
+                  : 'bg-slate-900/90 border-slate-700 text-slate-400 hover:text-amber-300 hover:border-amber-500/50'
+              }`}
+              title="Toggle Autonomous AI Commander for Hands-Free Jury Demo [Key: P]"
+            >
+              <Cpu className="w-3 h-3" />
+              <span className="hidden sm:inline">{juryAutoPilot ? 'AUTO-PILOT: ON' : 'AUTO-PILOT'}</span>
+            </button>
           )}
 
           {/* Voice Comms Toggle */}
@@ -220,7 +249,7 @@ export const Header: React.FC<Props> = ({ activeView, setActiveView }) => {
             <div className="w-5 h-5 rounded bg-cyan-950 border border-cyan-500/50 flex items-center justify-center">
               <User className="w-3 h-3 text-cyan-400" />
             </div>
-            <div>
+            <div className="hidden xl:block">
               <div className="font-bold text-[10px] leading-tight text-slate-100">{traineeProfile.rank} {traineeProfile.name}</div>
               <div className="text-[8px] text-cyan-400 truncate max-w-[100px] leading-none">{traineeProfile.unit}</div>
             </div>
