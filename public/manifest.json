@@ -1,0 +1,17 @@
+{
+  "name": "ASTRA-CUAS | MoD DSSC Counter-Drone Threat Simulation Trainer",
+  "short_name": "ASTRA-CUAS",
+  "description": "AI-Enabled Drone & Counter-Drone Threat Simulation Trainer (SIH 2026 PS-26247) - Ministry of Defence / Defence Services Staff College",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070b12",
+  "theme_color": "#00e5ff",
+  "orientation": "landscape",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}

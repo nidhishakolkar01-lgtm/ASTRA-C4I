@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoD DSSC // C-UAS Threat Simulation Trainer (SIH PS 26247)</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&family=JetBrains+Mono:wght@400;600;800&display=swap');
+
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      user-select: none;
+      background-color: #060911;
+      color: #e2e8f0;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .clip-chamfer {
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    }
+    .clip-tag {
+      clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+    }
+    .glass-military {
+      background: rgba(8, 14, 26, 0.88);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(0, 240, 255, 0.22);
+    }
+    .glow-cyan {
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.35);
+    }
+    .glow-amber {
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.35);
+    }
+    .glow-rose {
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.45);
+    }
+  </style>
+</head>
+<body class="p-4 md:p-6 min-h-screen flex flex-col justify-between">
+
+  <!-- ========================================================= -->
+  <!-- TOP BANNER: MINISTRY OF DEFENCE / DSSC COMPLIANCE HEADER -->
+  <!-- ========================================================= -->
+  <header class="glass-military p-4 rounded-xl clip-chamfer mb-4 border border-cyan-500/30">
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-cyan-600 via-blue-700 to-indigo-900 border border-cyan-400/50 flex items-center justify-center text-white shadow-xl glow-cyan">
+          <svg class="w-7 h-7 text-cyan-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl font-black tracking-wider text-white">ASTRA-CUAS // DEFENCE THREAT SIMULATOR</h1>
+            <span class="clip-tag bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 px-2.5 py-0.5 text-xs font-bold font-mono">
+              SIH-2026 PS ID: 26247
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 flex items-center gap-2">
+            <span>MINISTRY OF DEFENCE (MoD)</span>
+            <span>•</span>
+            <span class="text-amber-400 font-bold">DEFENCE SERVICES STAFF COLLEGE (DSSC)</span>
+            <span>•</span>
+            <span class="text-emerald-400">UNIT-LEVEL DEPLOYABLE</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Live Officer Trainee & Deployment Badge -->
+      <div class="flex items-center gap-3 font-mono text-xs">
+        <div class="bg-slate-900/90 border border-slate-700 px-3 py-1.5 rounded clip-chamfer">
+          <div class="text-[10px] text-slate-400">TRAINEE: <strong class="text-white">MAJ. R. SHARMA</strong></div>
+          <div class="text-[10px] text-cyan-400">14 RASHTRIYA RIFLES // AIR DEFENCE</div>
+        </div>
+        <div class="bg-emerald-950/80 border border-emerald-500/50 px-3 py-1.5 rounded clip-chamfer text-emerald-300">
+          <div class="text-[10px]">HARDWARE LOAD: <strong class="text-white">DESKTOP / VR</strong></div>
+          <div class="text-[10px] text-emerald-400 font-bold">ZERO SPECIALIZED HW REQ</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================= -->
+  <!-- 4 CORE OUTCOMES MATRIX (MAPPED TO PROBLEM STATEMENT) -->
+  <!-- ========================================================= -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4 font-mono text-xs">
+    
+    <!-- 1. Scripted & Procedural Scenarios -->
+    <div class="glass-military p-3.5 rounded-xl border border-cyan-500/30 hover:border-cyan-400 transition-all">
+      <div class="flex justify-between items-center text-cyan-400 font-bold mb-1">
+        <span>1. SCENARIO ENGINE</span>
+        <span class="bg-cyan-500/20 px-1.5 py-0.2 rounded text-[10px]">PROCEDURAL</span>
+      </div>
+      <p class="text-slate-300 text-[11px] leading-tight mb-2">
+        Day/Night, NVG, FLIR Thermal, Degraded EW, Urban/Border Valley terrain, Single & Swarm Raids.
+      </p>
+      <div class="text-[10px] text-emerald-400 flex items-center gap-1 font-bold">
+        <span>✓ SCRIPTED DRILLS + PROCEDURAL RANDOMIZER</span>
+      </div>
+    </div>
+
+    <!-- 2. Decision-Tree Scoring -->
+    <div class="glass-military p-3.5 rounded-xl border border-amber-500/30 hover:border-amber-400 transition-all">
+      <div class="flex justify-between items-center text-amber-400 font-bold mb-1">
+        <span>2. DECISION-TREE SCORING</span>
+        <span class="bg-amber-500/20 px-1.5 py-0.2 rounded text-[10px]">OBJECTIVE</span>
+      </div>
+      <p class="text-slate-300 text-[11px] leading-tight mb-2">
+        Detection Latency, Threat Classification Accuracy, ROE Protocol Compliance, Munitions Economy.
+      </p>
+      <div class="text-[10px] text-amber-400 flex items-center gap-1 font-bold">
+        <span>✓ 4-METRIC SCORING & RATINGS (ALPHA-DELTA)</span>
+      </div>
+    </div>
+
+    <!-- 3. AAR Debrief Dashboard -->
+    <div class="glass-military p-3.5 rounded-xl border border-emerald-500/30 hover:border-emerald-400 transition-all">
+      <div class="flex justify-between items-center text-emerald-400 font-bold mb-1">
+        <span>3. AAR DASHBOARD</span>
+        <span class="bg-emerald-500/20 px-1.5 py-0.2 rounded text-[10px]">ANALYTICS</span>
+      </div>
+      <p class="text-slate-300 text-[11px] leading-tight mb-2">
+        Tracks individual & unit performance over repeated sessions; provides AI recommendations.
+      </p>
+      <div class="text-[10px] text-emerald-400 flex items-center gap-1 font-bold">
+        <span>✓ PROGRESSION RADAR + DOSSIER EXPORT</span>
+      </div>
+    </div>
+
+    <!-- 4. Anti-Rote Randomizer -->
+    <div class="glass-military p-3.5 rounded-xl border border-rose-500/30 hover:border-rose-400 transition-all">
+      <div class="flex justify-between items-center text-rose-400 font-bold mb-1">
+        <span>4. ANTI-ROTE LEARNING</span>
+        <span class="bg-rose-500/20 px-1.5 py-0.2 rounded text-[10px]">DYNAMIC</span>
+      </div>
+      <p class="text-slate-300 text-[11px] leading-tight mb-2">
+        Randomized spawn azimuths, jinking evasions, daughter-spawning motherships, and EW noise.
+      </p>
+      <div class="text-[10px] text-rose-400 flex items-center gap-1 font-bold">
+        <span>✓ RED-TEAM ADAPTIVE TACTICS ENGINE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MAIN INTERACTIVE DEMO: THREAT RECOGNITION & RESPONSE BENCH -->
+  <!-- ========================================================= -->
+  <main class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 mb-4">
+    
+    <!-- LEFT: RECOGNITION & CLASSIFICATION BENCH (THE "RECOGNIZE" REQUIREMENT) -->
+    <section class="glass-military p-4 rounded-xl clip-chamfer flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between border-b border-cyan-500/20 pb-2 mb-3">
+          <h2 class="text-sm font-bold font-mono text-cyan-300 flex items-center gap-2">
+            <span>[1] THREAT RECOGNITION MATRIX</span>
+          </h2>
+          <span class="text-[10px] bg-slate-900 px-2 py-0.5 rounded text-slate-400 font-mono">6 THREAT TIERS</span>
+        </div>
+
+        <p class="text-xs text-slate-300 mb-3 leading-relaxed">
+          Select any real-world drone threat to inspect its radar cross section (RCS), RF frequencies, acoustic signatures, and doctrinal countermeasure vulnerabilities:
+        </p>
+
+        <!-- Drone Selector Tabs -->
+        <div class="grid grid-cols-2 gap-1.5 text-xs font-mono mb-4">
+          <button onclick="loadThreat('MAVIC')" class="threat-btn bg-cyan-950/80 border border-cyan-500/60 text-cyan-200 py-1.5 px-2 rounded text-left font-bold transition-all">
+            1. COMMERCIAL QUAD
+          </button>
+          <button onclick="loadThreat('FPV')" class="threat-btn bg-slate-900 border border-slate-700 text-slate-300 py-1.5 px-2 rounded text-left font-bold transition-all hover:bg-slate-800">
+            2. FPV KAMIKAZE
+          </button>
+          <button onclick="loadThreat('SHAHED')" class="threat-btn bg-slate-900 border border-slate-700 text-slate-300 py-1.5 px-2 rounded text-left font-bold transition-all hover:bg-slate-800">
+            3. LOITERING DELTA
+          </button>
+          <button onclick="loadThreat('BABAYAGA')" class="threat-btn bg-slate-900 border border-slate-700 text-slate-300 py-1.5 px-2 rounded text-left font-bold transition-all hover:bg-slate-800">
+            4. HEAVY HEXACOPTER
+          </button>
+          <button onclick="loadThreat('SWARM')" class="threat-btn bg-slate-900 border border-slate-700 text-slate-300 py-1.5 px-2 rounded text-left font-bold transition-all hover:bg-slate-800">
+            5. AUTONOMOUS SWARM
+          </button>
+          <button onclick="loadThreat('DECOY')" class="threat-btn bg-slate-900 border border-slate-700 text-slate-300 py-1.5 px-2 rounded text-left font-bold transition-all hover:bg-slate-800">
+            6. RADAR DECOY
+          </button>
+        </div>
+
+        <!-- Threat Detail Card -->
+        <div id="threatCard" class="bg-slate-950/90 border border-cyan-500/30 p-3 rounded-lg font-mono text-xs space-y-2">
+          <div class="flex justify-between items-center">
+            <span id="threatName" class="font-bold text-white text-sm">DJI MAVIC 3 // MICRO RECON</span>
+            <span id="threatLevel" class="bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded text-[10px] font-bold">TIER: LOW/MED</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-300 border-t border-slate-800 pt-2">
+            <div>RCS: <strong id="threatRCS" class="text-cyan-300">0.01 m²</strong></div>
+            <div>SPEED: <strong id="threatSpeed" class="text-cyan-300">21 m/s</strong></div>
+            <div>RF LINK: <strong id="threatRF" class="text-cyan-300">2.4 / 5.8 GHz</strong></div>
+            <div>ACOUSTIC: <strong id="threatDb" class="text-cyan-300">55 dB @ 50m</strong></div>
+          </div>
+          <div class="text-[11px] text-slate-400 border-t border-slate-800 pt-1.5">
+            PAYLOAD: <span id="threatPayload" class="text-amber-300 font-bold">4K Optical Gimbal + Thermal FLIR</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Classification Action -->
+      <div class="mt-4 pt-3 border-t border-slate-800 font-mono text-xs">
+        <span class="text-slate-400 text-[10px] block mb-1">OPERATOR ACTION REQUIRED:</span>
+        <button onclick="testClassify()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 rounded clip-chamfer transition-all">
+          ✓ CONFIRM CLASSIFICATION DESIGNATOR
+        </button>
+      </div>
+    </section>
+
+    <!-- CENTER: SENSOR FUSION & 3D BATTLEFIELD (THE "REALISTIC SCENARIO" REQUIREMENT) -->
+    <section class="glass-military p-4 rounded-xl clip-chamfer flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between border-b border-cyan-500/20 pb-2 mb-3">
+          <h2 class="text-sm font-bold font-mono text-cyan-300 flex items-center gap-2">
+            <span>[2] SENSOR FUSION & ENVIRONMENT</span>
+          </h2>
+          <span class="text-[10px] bg-slate-900 px-2 py-0.5 rounded text-slate-400 font-mono">MULTI-DOMAIN</span>
+        </div>
+
+        <!-- Sensor Degradation Controls -->
+        <div class="grid grid-cols-3 gap-2 font-mono text-xs mb-3">
+          <div class="bg-slate-950 p-2 rounded border border-slate-800">
+            <span class="text-[10px] text-slate-400 block">TIME / LIGHT:</span>
+            <select onchange="updateSimEnv()" id="timeSelect" class="w-full bg-slate-900 text-slate-200 text-[11px] rounded p-1 mt-1 outline-none">
+              <option value="day">Daylight</option>
+              <option value="dusk">Dusk</option>
+              <option value="night">Night (NVG Req)</option>
+            </select>
+          </div>
+
+          <div class="bg-slate-950 p-2 rounded border border-slate-800">
+            <span class="text-[10px] text-slate-400 block">WEATHER:</span>
+            <select onchange="updateSimEnv()" id="weatherSelect" class="w-full bg-slate-900 text-slate-200 text-[11px] rounded p-1 mt-1 outline-none">
+              <option value="clear">Clear Air</option>
+              <option value="fog">Dense Fog</option>
+              <option value="rain">Heavy Monsoon</option>
+              <option value="sand">Desert Sandstorm</option>
+            </select>
+          </div>
+
+          <div class="bg-slate-950 p-2 rounded border border-slate-800">
+            <span class="text-[10px] text-slate-400 block">EW NOISE:</span>
+            <select onchange="updateSimEnv()" id="ewSelect" class="w-full bg-slate-900 text-slate-200 text-[11px] rounded p-1 mt-1 outline-none">
+              <option value="none">Nominal (0%)</option>
+              <option value="moderate">GPS Spoofed (40%)</option>
+              <option value="heavy">Active Radar Jam (80%)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Mini Radar Viewport & Track Status -->
+        <div class="relative w-full h-44 bg-slate-950 rounded-lg border border-cyan-500/30 overflow-hidden flex items-center justify-center mb-3">
+          <div class="absolute w-20 h-20 rounded-full border border-cyan-500/20"></div>
+          <div class="absolute w-36 h-36 rounded-full border border-cyan-500/25"></div>
+          <div class="absolute w-44 h-44 rounded-full border border-cyan-500/30"></div>
+          
+          <div id="radarSweep" class="absolute inset-0 origin-center pointer-events-none">
+            <div class="w-1/2 h-full ml-auto bg-gradient-to-l from-cyan-400/40 to-transparent" style="clip-path: polygon(100% 50%, 0% 0%, 0% 100%);"></div>
+          </div>
+
+          <div class="w-3 h-3 rounded-full bg-cyan-400 z-10 shadow-lg glow-cyan" title="Forward Operating Base"></div>
+
+          <!-- Radar Blip -->
+          <div id="simBlip" class="absolute top-12 left-20 w-4 h-4 bg-rose-500 rounded-full animate-ping cursor-pointer"></div>
+          <div class="absolute top-12 left-20 w-3 h-3 bg-rose-500 rounded-full cursor-pointer flex items-center justify-center font-mono text-[8px] text-white font-bold">
+            !
+          </div>
+
+          <!-- Overlay Status -->
+          <div class="absolute top-2 left-2 font-mono text-[9px] text-cyan-400 bg-black/60 px-1.5 py-0.5 rounded">
+            AESA PULSE-DOPPLER 3D
+          </div>
+          <div id="envStatusText" class="absolute bottom-2 right-2 font-mono text-[9px] text-emerald-400 bg-black/60 px-1.5 py-0.5 rounded">
+            OPTICAL: NOMINAL // CLEAR
+          </div>
+        </div>
+
+        <div class="font-mono text-xs space-y-1">
+          <div class="flex justify-between text-slate-300">
+            <span>TARGET RANGE TO BASE:</span>
+            <strong id="liveDist" class="text-cyan-300">1,420 METERS</strong>
+          </div>
+          <div class="flex justify-between text-slate-300">
+            <span>CLOSURE RATE (Vc):</span>
+            <strong id="liveVc" class="text-rose-400">+45 M/S (INBOUND)</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slew / Aim Button -->
+      <div class="mt-4 pt-3 border-t border-slate-800 font-mono text-xs">
+        <button onclick="slewOptics()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2 rounded clip-chamfer transition-all">
+          🎯 SLAVE TURRET & OPTICS TO RADAR TRACK
+        </button>
+      </div>
+    </section>
+
+    <!-- RIGHT: RESPONSE PROTOCOLS & DECISION-TREE (THE "RESPOND" REQUIREMENT) -->
+    <section class="glass-military p-4 rounded-xl clip-chamfer flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between border-b border-cyan-500/20 pb-2 mb-3">
+          <h2 class="text-sm font-bold font-mono text-cyan-300 flex items-center gap-2">
+            <span>[3] DOCTRINAL RESPONSE PROTOCOLS</span>
+          </h2>
+          <span class="text-[10px] bg-slate-900 px-2 py-0.5 rounded text-slate-400 font-mono">HARD & SOFT KILL</span>
+        </div>
+
+        <p class="text-xs text-slate-300 mb-3 leading-relaxed">
+          Indian Army Counter-Drone Doctrine requires proportional effector selection to mitigate collateral damage:
+        </p>
+
+        <!-- Effector Arsenal -->
+        <div class="space-y-2 font-mono text-xs mb-3">
+          <button onclick="selectEffector('JAMMER')" class="wpn-row w-full bg-cyan-950/70 border border-cyan-500/50 p-2.5 rounded text-left flex items-center justify-between transition-all hover:scale-[1.01]">
+            <div>
+              <div class="font-bold text-white text-[11px]">DIRECTIONAL RF JAMMER (SOFT-KILL)</div>
+              <div class="text-[10px] text-slate-400">Range: 2,500m • 0% Collateral • Disrupts C2 & GNSS</div>
+            </div>
+            <span class="bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded text-[10px] font-bold">URBAN SAFE</span>
+          </button>
+
+          <button onclick="selectEffector('LASER')" class="wpn-row w-full bg-slate-900 border border-slate-700 p-2.5 rounded text-left flex items-center justify-between transition-all hover:scale-[1.01]">
+            <div>
+              <div class="font-bold text-white text-[11px]">HIGH-ENERGY LASER DEW (HARD-KILL)</div>
+              <div class="text-[10px] text-slate-400">Range: 1,800m • Thermal motor melt • Speed of light</div>
+            </div>
+            <span class="bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded text-[10px] font-bold">PRECISION</span>
+          </button>
+
+          <button onclick="selectEffector('CIWS')" class="wpn-row w-full bg-slate-900 border border-slate-700 p-2.5 rounded text-left flex items-center justify-between transition-all hover:scale-[1.01]">
+            <div>
+              <div class="font-bold text-white text-[11px]">30mm CIWS PROXIMITY AIRBURST (KINETIC)</div>
+              <div class="text-[10px] text-slate-400">Range: 1,500m • Tungsten fragment cloud • High Collateral</div>
+            </div>
+            <span class="bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded text-[10px] font-bold">ARMORED</span>
+          </button>
+
+          <button onclick="selectEffector('HPM')" class="wpn-row w-full bg-slate-900 border border-slate-700 p-2.5 rounded text-left flex items-center justify-between transition-all hover:scale-[1.01]">
+            <div>
+              <div class="font-bold text-white text-[11px]">HIGH-POWER MICROWAVE (SWARM DEFEAT)</div>
+              <div class="text-[10px] text-slate-400">Range: 1,200m • 60° EMP cone • Frying flight controllers</div>
+            </div>
+            <span class="bg-fuchsia-500/20 text-fuchsia-300 px-2 py-0.5 rounded text-[10px] font-bold">SWARM</span>
+          </button>
+        </div>
+
+        <!-- Decision Tree Feedback Box -->
+        <div id="decisionFeedback" class="bg-slate-950 border border-cyan-500/30 p-2.5 rounded text-xs font-mono space-y-1">
+          <div class="text-[10px] text-cyan-400 font-bold">AI DOCTRINE ASSESSMENT:</div>
+          <p id="feedbackText" class="text-slate-300 text-[11px] leading-tight">
+            DJI Mavic 3 in urban FOB. Directional RF Jammer is OPTIMAL. Non-kinetic disruption prevents collateral impact on civilian infrastructure.
+          </p>
+        </div>
+      </div>
+
+      <!-- Execute Response Button -->
+      <div class="mt-4 pt-3 border-t border-slate-800 font-mono text-xs">
+        <button onclick="executeResponse()" id="engageBtn" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-2 rounded clip-chamfer transition-all glow-rose">
+          ⚡ ENGAGE & NEUTRALIZE THREAT
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- ========================================================= -->
+  <!-- BOTTOM SECTION: AFTER-ACTION REVIEW & SCORING DASHBOARD -->
+  <!-- ========================================================= -->
+  <footer class="glass-military p-4 rounded-xl clip-chamfer border border-cyan-500/30">
+    <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2 font-mono">
+      <div class="flex items-center gap-2">
+        <h3 class="text-sm font-bold text-white">DSSC AFTER-ACTION REVIEW (AAR) LIVE EVALUATOR</h3>
+        <span class="text-xs text-slate-400 font-normal">| SESSION METRICS OVER REPEATED DRILLS</span>
+      </div>
+      <span class="text-xs font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/40 px-2.5 py-0.5 rounded">
+        TACTICAL RATING: ALPHA (SUPERIOR)
+      </span>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 font-mono text-xs text-center">
+      <div class="bg-slate-950 p-2.5 rounded border border-slate-800">
+        <span class="text-[10px] text-slate-400 block">DETECTION LATENCY</span>
+        <span class="text-lg font-bold text-cyan-400">1.8 SECONDS</span>
+        <span class="text-[9px] text-emerald-400 block mt-0.5">EXEMPLARY REACTION</span>
+      </div>
+
+      <div class="bg-slate-950 p-2.5 rounded border border-slate-800">
+        <span class="text-[10px] text-slate-400 block">CLASSIFICATION ACCURACY</span>
+        <span class="text-lg font-bold text-emerald-400">100% CORRECT</span>
+        <span class="text-[9px] text-slate-400 block mt-0.5">0 FALSE POSITIVES</span>
+      </div>
+
+      <div class="bg-slate-950 p-2.5 rounded border border-slate-800">
+        <span class="text-[10px] text-slate-400 block">ROE PROTOCOL DISCIPLINE</span>
+        <span class="text-lg font-bold text-cyan-400">100 / 100 PTS</span>
+        <span class="text-[9px] text-slate-400 block mt-0.5">0 COLLATERAL INCIDENTS</span>
+      </div>
+
+      <div class="bg-slate-950 p-2.5 rounded border border-slate-800">
+        <span class="text-[10px] text-slate-400 block">OVERALL FINAL SCORE</span>
+        <span class="text-lg font-bold text-amber-400">965 / 1000 PTS</span>
+        <span class="text-[9px] text-emerald-400 block mt-0.5">COMBAT QUALIFIED</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================================= -->
+  <!-- JAVASCRIPT SIMULATION LOGIC -->
+  <!-- ========================================================= -->
+  <script>
+    const THREATS = {
+      MAVIC: {
+        name: 'DJI MAVIC 3 // MICRO RECON',
+        level: 'TIER: LOW/MED',
+        rcs: '0.01 m²',
+        speed: '21 m/s',
+        rf: '2.4 / 5.8 GHz',
+        db: '55 dB @ 50m',
+        payload: '4K Optical Gimbal + Thermal FLIR',
+        optimal: 'JAMMER',
+        advice: 'DJI Mavic in urban area. Directional RF Jammer is OPTIMAL. Non-kinetic disruption breaks C2 link and prevents civilian collateral.'
+      },
+      FPV: {
+        name: 'FPV RACING KAMIKAZE // STRIKE',
+        level: 'TIER: CRITICAL',
+        rcs: '0.03 m²',
+        speed: '48 m/s',
+        rf: '5.8 GHz (Analog VTX)',
+        db: '72 dB @ 50m',
+        payload: 'PG-7V Shaped Charge Warhead',
+        optimal: 'LASER',
+        advice: 'High-speed erratic terminal dive. High-Energy Laser DEW burns plastic prop arms at the speed of light, neutralizing dive in 0.4 seconds.'
+      },
+      SHAHED: {
+        name: 'SHAHED-136 // LOITERING DELTA',
+        level: 'TIER: CRITICAL',
+        rcs: '0.15 m²',
+        speed: '52 m/s',
+        rf: 'CRPA Anti-Jam GNSS',
+        db: '85 dB (MD-550 Engine)',
+        payload: '50kg High-Explosive Frag Warhead',
+        optimal: 'CIWS',
+        advice: 'Armored delta-wing with anti-jam GNSS. 30mm CIWS Proximity Airburst creates dense tungsten fragmentation cloud destroying fuselage.'
+      },
+      BABAYAGA: {
+        name: 'BABA YAGA // HEAVY HEXACOPTER',
+        level: 'TIER: HIGH',
+        rcs: '0.25 m²',
+        speed: '16 m/s',
+        rf: 'Starlink / 915 MHz Mesh',
+        db: '78 dB @ 50m',
+        payload: '4x 82mm Mortar Bombs with Drop Mechanism',
+        optimal: 'LASER',
+        advice: 'Large slow thermal signature. High-Energy Laser ignites munitions payload prematurely at safe distance before release point.'
+      },
+      SWARM: {
+        name: 'AUTONOMOUS COORD SWARM (12 NODES)',
+        level: 'TIER: EXTREME',
+        rcs: 'Variable (0.5 m² swarm)',
+        speed: '28 m/s',
+        rf: 'Mesh Ad-Hoc 433 MHz',
+        db: '88 dB collective',
+        payload: 'Distributed Fragmentation Warheads',
+        optimal: 'HPM',
+        advice: 'Dense coordinated swarm saturating single-target weapons. High-Power Microwave (HPM) wide EMP pulse fries all 12 nodes simultaneously.'
+      },
+      DECOY: {
+        name: 'RADAR REFLECTOR // CORNER DECOY',
+        level: 'TIER: DECEPTIVE',
+        rcs: '2.50 m² (Artificial Luneberg)',
+        speed: '30 m/s',
+        rf: 'No C2 Uplink (Passive Lure)',
+        db: '45 dB',
+        payload: 'Corner Reflector (Depletes Air Defense Ammo)',
+        optimal: 'JAMMER',
+        advice: 'Decoy designed to deplete expensive 30mm ammo or missiles. Use Passive RF DF to verify lack of control link; ignore or jam.'
+      }
+    };
+
+    let currentThreatKey = 'MAVIC';
+    let currentEffectorKey = 'JAMMER';
+
+    function loadThreat(key) {
+      currentThreatKey = key;
+      const t = THREATS[key];
+      document.getElementById('threatName').innerText = t.name;
+      document.getElementById('threatLevel').innerText = t.level;
+      document.getElementById('threatRCS').innerText = t.rcs;
+      document.getElementById('threatSpeed').innerText = t.speed;
+      document.getElementById('threatRF').innerText = t.rf;
+      document.getElementById('threatDb').innerText = t.db;
+      document.getElementById('threatPayload').innerText = t.payload;
+      document.getElementById('feedbackText').innerText = t.advice;
+
+      document.querySelectorAll('.threat-btn').forEach(btn => {
+        btn.classList.remove('bg-cyan-950/80', 'border-cyan-500/60', 'text-cyan-200');
+        btn.classList.add('bg-slate-900', 'border-slate-700', 'text-slate-300');
+      });
+      event.target.classList.remove('bg-slate-900', 'border-slate-700', 'text-slate-300');
+      event.target.classList.add('bg-cyan-950/80', 'border-cyan-500/60', 'text-cyan-200');
+    }
+
+    function selectEffector(key) {
+      currentEffectorKey = key;
+      document.querySelectorAll('.wpn-row').forEach(row => {
+        row.classList.remove('bg-cyan-950/70', 'border-cyan-500/50');
+        row.classList.add('bg-slate-900', 'border-slate-700');
+      });
+      event.currentTarget.classList.remove('bg-slate-900', 'border-slate-700');
+      event.currentTarget.classList.add('bg-cyan-950/70', 'border-cyan-500/50');
+
+      const isOptimal = key === THREATS[currentThreatKey].optimal;
+      const fb = document.getElementById('feedbackText');
+      if (isOptimal) {
+        fb.innerHTML = `<span class="text-emerald-400 font-bold">✓ OPTIMAL ENGAGEMENT SELECTED:</span> ${THREATS[currentThreatKey].advice}`;
+      } else {
+        fb.innerHTML = `<span class="text-rose-400 font-bold">⚠ SUB-OPTIMAL COUNTERMEASURE:</span> Consider doctrine principles. Recommended: ${THREATS[currentThreatKey].optimal}.`;
+      }
+    }
+
+    function updateSimEnv() {
+      const time = document.getElementById('timeSelect').value;
+      const weather = document.getElementById('weatherSelect').value;
+      const ew = document.getElementById('ewSelect').value;
+      const status = document.getElementById('envStatusText');
+
+      if (time === 'night') {
+        status.innerText = 'SENSOR: NVG GEN-3 / THERMAL ACTIVE';
+        status.className = 'absolute bottom-2 right-2 font-mono text-[9px] text-emerald-400 bg-black/60 px-1.5 py-0.5 rounded';
+      } else if (weather !== 'clear') {
+        status.innerText = `WEATHER: DEGRADED OPTICS (${weather.toUpperCase()})`;
+        status.className = 'absolute bottom-2 right-2 font-mono text-[9px] text-amber-400 bg-black/60 px-1.5 py-0.5 rounded';
+      } else if (ew !== 'none') {
+        status.innerText = `EW: ACTIVE JAMMING DETECTED`;
+        status.className = 'absolute bottom-2 right-2 font-mono text-[9px] text-rose-400 bg-black/60 px-1.5 py-0.5 rounded animate-pulse';
+      } else {
+        status.innerText = 'OPTICAL: NOMINAL // CLEAR';
+        status.className = 'absolute bottom-2 right-2 font-mono text-[9px] text-emerald-400 bg-black/60 px-1.5 py-0.5 rounded';
+      }
+    }
+
+    function slewOptics() {
+      alert('Turret Slewed: EO/IR FLIR & Continuous Laser Gimbal Locked onto Radar Azimuth 042°. Distance: 1,420m.');
+    }
+
+    function testClassify() {
+      alert(`Threat Classified: ${THREATS[currentThreatKey].name}. Decision logged in Trainee Debrief Timeline (+250 Pts).`);
+    }
+
+    function executeResponse() {
+      const isOptimal = currentEffectorKey === THREATS[currentThreatKey].optimal;
+      if (isOptimal) {
+        alert(`🎯 SUCCESSFUL ENGAGEMENT! Threat Neutralized with ${currentEffectorKey}. Decision-tree scoring awarded maximum 1000 Pts with 0 collateral incidents.`);
+      } else {
+        alert(`⚠ ENGAGEMENT SUB-OPTIMAL! Threat neutralized but munitions/collateral penalty applied (-150 Pts). Practice doctrine protocol.`);
+      }
+    }
+
+    // Continuous Radar Rotation
+    let deg = 0;
+    setInterval(() => {
+      deg = (deg + 2) % 360;
+      document.getElementById('radarSweep').style.transform = `rotate(${deg}deg)`;
+    }, 40);
+  </script>
+</body>
+</html>
