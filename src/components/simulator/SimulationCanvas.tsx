@@ -52,6 +52,8 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
     selectedWeaponId,
     weapons,
     fireWeapon,
+    selectWeapon,
+    setMasterArm,
     hitmarkerActive,
     juryAutoPilot,
     radarSweepDeg
@@ -73,6 +75,12 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
   const vrButtonContainerRef = useRef<HTMLDivElement>(null);
 
   const [headingDeg, setHeadingDeg] = useState(0);
+  const [pitchDeg, setPitchDeg] = useState(14);
+  const [cursorPos, setCursorPos] = useState<{ x: number; y: number; active: boolean }>({
+    x: 500,
+    y: 300,
+    active: false
+  });
   const [projectedTargets, setProjectedTargets] = useState<ProjectedTargetHUD[]>([]);
   const [opticalZoom, setOpticalZoom] = useState<number>(1); // 1x, 2x, 4x, 8x
 
@@ -173,6 +181,7 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
 
       const deg = Math.round(((cameraParams.current.yaw * 180 / Math.PI) % 360 + 360) % 360);
       setHeadingDeg(deg);
+      setPitchDeg(Math.round((cameraParams.current.pitch * 180) / Math.PI));
     };
 
     const onMouseUp = () => {
@@ -524,12 +533,92 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
     }
   };
 
+  // Compute dynamic aiming coordinates: magnetic snap to nearby target, cursor tracking, and locked target tracking
+  const onScreenTargets = projectedTargets.filter(t => !t.isOffscreen);
+  const selectedTargetProj = onScreenTargets.find(t => t.isSelected);
+
+  // Find closest drone to cursor for Magnetic Target Snap (within 58px)
+  const magneticSnapTarget = cursorPos.active
+    ? onScreenTargets.reduce<{ tgt: ProjectedTargetHUD | null; distPx: number }>(
+        (best, t) => {
+          const dPx = Math.hypot(t.x - cursorPos.x, t.y - cursorPos.y);
+          return dPx < best.distPx ? { tgt: t, distPx: dPx } : best;
+        },
+        { tgt: null, distPx: 58 }
+      ).tgt
+    : null;
+
+  // Dynamic Aiming Reticle coordinates:
+  // 1) If cursor is hovering near any target, magnetically snap onto that target!
+  // 2) If user is moving cursor on screen, follow cursor smoothly!
+  // 3) If cursor leaves canvas and a target is locked, slave directly onto the locked target!
+  const aimX = magneticSnapTarget
+    ? magneticSnapTarget.x
+    : cursorPos.active
+      ? cursorPos.x
+      : selectedTargetProj
+        ? selectedTargetProj.x
+        : 500;
+
+  const aimY = magneticSnapTarget
+    ? magneticSnapTarget.y
+    : cursorPos.active
+      ? cursorPos.y
+      : selectedTargetProj
+        ? selectedTargetProj.y
+        : 300;
+
+  const handleViewportMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setCursorPos({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+      active: true
+    });
+  };
+
+  const handleViewportClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).closest('button')) return;
+    if (magneticSnapTarget) {
+      selectDrone(magneticSnapTarget.id);
+    }
+  };
+
+  const handleViewportDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).closest('button')) return;
+    const targetToEngage = magneticSnapTarget || selectedTargetProj;
+    if (targetToEngage) {
+      selectDrone(targetToEngage.id);
+      setMasterArm('ARMED');
+      const droneObj = drones.find(d => d.instanceId === targetToEngage.id);
+      const spec = droneObj ? DRONE_DATABASE[droneObj.specId] : null;
+      if (spec) {
+        const bestWeapon =
+          spec.category === 'swarm_member'
+            ? 'hpm_emp_emitter'
+            : spec.category === 'loitering_munition' || spec.category === 'fpv_kamikaze'
+              ? 'laser_dew_system'
+              : spec.category === 'heavy_hexacopter'
+                ? 'ciws_30mm_autocannon'
+                : 'rf_jammer_directional';
+        selectWeapon(bestWeapon);
+      }
+      fireWeapon(targetToEngage.id, true);
+    }
+  };
+
   return (
-    <div className="relative w-full h-full overflow-hidden bg-slate-950 select-none">
+    <div
+      onMouseMove={handleViewportMouseMove}
+      onMouseLeave={() => setCursorPos(prev => ({ ...prev, active: false }))}
+      onClick={handleViewportClick}
+      onDoubleClick={handleViewportDoubleClick}
+      className="relative w-full h-full overflow-hidden bg-slate-950 select-none"
+    >
       {/* 3D WebGL / WebXR Canvas Viewport */}
       <div 
         ref={mountRef} 
-        className={`w-full h-full cursor-crosshair transition-all duration-300 ${getSensorFilterStyle(sensorMode)}`}
+        className={`w-full h-full cursor-none transition-all duration-300 ${getSensorFilterStyle(sensorMode)}`}
       />
 
       {/* Optical Sensor Mode / Camera Switch Calibration Flash Overlay */}
@@ -552,8 +641,22 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
 
       {/* Real-Time Screen-Space Interactive Target HUD Brackets & Ballistic Lead Pippers */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Predictive Lead Pipper Lines (SVG Layer) */}
+        {/* Predictive Lead Pipper Lines & Dynamic Aim Tether Vector (SVG Layer) */}
         <svg className="absolute inset-0 w-full h-full pointer-events-none">
+          {/* Dynamic Tether Line from Moving Aiming Sight to Locked Target */}
+          {selectedTargetProj && cursorPos.active && (
+            <line
+              x1={aimX}
+              y1={aimY}
+              x2={selectedTargetProj.x}
+              y2={selectedTargetProj.y}
+              stroke="#f43f5e"
+              strokeWidth="1.2"
+              strokeDasharray="5 4"
+              strokeOpacity="0.65"
+            />
+          )}
+
           {projectedTargets.filter(t => t.isSelected && !t.isOffscreen && t.leadX !== undefined && t.leadY !== undefined).map(t => (
             <g key={`lead-vector-${t.id}`}>
               <line
@@ -711,12 +814,69 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
         })}
       </div>
 
-      {/* Tactical Center Hitmarker */}
+      {/* ================================================================= */}
+      {/* DYNAMIC MOVING AIMING SIGHT (FOLLOWS CURSOR & MAGNETICALLY SNAPS) */}
+      {/* ================================================================= */}
+      {(cursorPos.active || selectedTargetProj) && (
+        <div
+          style={{
+            left: `${aimX}px`,
+            top: `${aimY}px`,
+            transform: 'translate(-50%, -50%)'
+          }}
+          className="absolute pointer-events-none z-20 transition-[left,top] duration-75 ease-out"
+        >
+          <div className="relative flex items-center justify-center">
+            {/* Outer Slewing Aim Ring */}
+            <div
+              className={`rounded-full border transition-all duration-150 flex items-center justify-center ${
+                magneticSnapTarget
+                  ? 'w-16 h-16 border-rose-400 bg-rose-500/10 shadow-[0_0_20px_rgba(244,63,94,0.45)] scale-105'
+                  : selectedTargetProj && !cursorPos.active
+                    ? 'w-14 h-14 border-rose-500/80'
+                    : 'w-11 h-11 border-cyan-400/70 bg-cyan-500/5'
+              }`}
+            >
+              {/* 4 Tick Marks */}
+              <div className={`absolute -top-1.5 w-0.5 h-2.5 ${magneticSnapTarget ? 'bg-rose-400' : 'bg-cyan-400'}`} />
+              <div className={`absolute -bottom-1.5 w-0.5 h-2.5 ${magneticSnapTarget ? 'bg-rose-400' : 'bg-cyan-400'}`} />
+              <div className={`absolute -left-1.5 h-0.5 w-2.5 ${magneticSnapTarget ? 'bg-rose-400' : 'bg-cyan-400'}`} />
+              <div className={`absolute -right-1.5 h-0.5 w-2.5 ${magneticSnapTarget ? 'bg-rose-400' : 'bg-cyan-400'}`} />
+              {/* Center Pipper Dot */}
+              <div className={`w-1.5 h-1.5 rounded-full ${magneticSnapTarget ? 'bg-rose-400 animate-ping' : 'bg-cyan-300'}`} />
+            </div>
+
+            {/* Live Micro-Telemetry Readout Moving with the Aiming Sight */}
+            <div className="absolute left-10 top-2 font-mono text-[8px] leading-tight whitespace-nowrap bg-slate-950/80 border border-cyan-500/30 px-1.5 py-0.5 rounded backdrop-blur-sm text-cyan-300">
+              {magneticSnapTarget ? (
+                <>
+                  <div className="text-rose-300 font-bold">SNAP: {magneticSnapTarget.id.toUpperCase()}</div>
+                  <div className="text-emerald-300">CLICK LOCK · DBL-CLICK FIRE</div>
+                </>
+              ) : (
+                <>
+                  <div>AZ {((headingDeg + Math.round((aimX - 500) * 0.08)) + 360) % 360}° · EL {pitchDeg - Math.round((aimY - 300) * 0.05)}°</div>
+                  <div className="text-slate-400">{weapons[selectedWeaponId]?.name.split(' ')[0] || 'C4I'} SIGHT</div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tactical Hitmarker (Appears at locked target or cursor position, never stuck!) */}
       {hitmarkerActive && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
-          <div className="relative w-10 h-10 flex items-center justify-center animate-ping">
-            <div className="absolute w-6 h-0.5 bg-rose-500 rotate-45 shadow-lg shadow-rose-500/80" />
-            <div className="absolute w-6 h-0.5 bg-rose-500 -rotate-45 shadow-lg shadow-rose-500/80" />
+        <div
+          style={{
+            left: `${selectedTargetProj ? selectedTargetProj.x : aimX}px`,
+            top: `${selectedTargetProj ? selectedTargetProj.y : aimY}px`,
+            transform: 'translate(-50%, -50%)'
+          }}
+          className="absolute pointer-events-none z-30"
+        >
+          <div className="relative w-12 h-12 flex items-center justify-center animate-ping">
+            <div className="absolute w-7 h-0.5 bg-rose-500 rotate-45 shadow-lg shadow-rose-500/80" />
+            <div className="absolute w-7 h-0.5 bg-rose-500 -rotate-45 shadow-lg shadow-rose-500/80" />
           </div>
         </div>
       )}
@@ -802,59 +962,29 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
         </div>
       )}
 
-      {/* Always-On Aerospace SVG Artificial Horizon Pitch Ladder & Boresight Reticle */}
-      <svg
-        className="absolute inset-0 w-full h-full pointer-events-none z-10"
-        viewBox="0 0 1000 600"
-        preserveAspectRatio="xMidYMid slice"
-      >
-        {/* Horizon Reference Bars */}
-        <line x1="360" y1="300" x2="445" y2="300" stroke="#22d3ee" strokeWidth="1.2" strokeOpacity="0.35" strokeDasharray="6 4" />
-        <line x1="555" y1="300" x2="640" y2="300" stroke="#22d3ee" strokeWidth="1.2" strokeOpacity="0.35" strokeDasharray="6 4" />
-
-        {/* +10 deg Pitch Rung */}
-        <path d="M 430 225 L 460 225 L 460 232 M 570 225 L 540 225 L 540 232" stroke="#22d3ee" strokeWidth="1.2" strokeOpacity="0.4" fill="none" />
-        <text x="405" y="229" fill="#22d3ee" fontSize="10" fontFamily="monospace" opacity="0.55">+10</text>
-        <text x="576" y="229" fill="#22d3ee" fontSize="10" fontFamily="monospace" opacity="0.55">+10</text>
-
-        {/* +5 deg Pitch Rung */}
-        <path d="M 445 262 L 465 262 L 465 267 M 555 262 L 535 262 L 535 267" stroke="#22d3ee" strokeWidth="1.2" strokeOpacity="0.35" fill="none" />
-
-        {/* -5 deg Pitch Rung */}
-        <path d="M 445 338 L 465 338 L 465 333 M 555 338 L 535 338 L 535 333" stroke="#22d3ee" strokeWidth="1.2" strokeOpacity="0.35" strokeDasharray="3 2" fill="none" />
-
-        {/* -10 deg Pitch Rung */}
-        <path d="M 430 375 L 460 375 L 460 368 M 570 375 L 540 375 L 540 368" stroke="#22d3ee" strokeWidth="1.2" strokeOpacity="0.4" strokeDasharray="3 2" fill="none" />
-        <text x="405" y="379" fill="#22d3ee" fontSize="10" fontFamily="monospace" opacity="0.55">-10</text>
-        <text x="576" y="379" fill="#22d3ee" fontSize="10" fontFamily="monospace" opacity="0.55">-10</text>
-
-        {/* Center Boresight Pipper */}
-        <circle cx="500" cy="300" r="18" stroke="#22d3ee" strokeWidth="1" strokeOpacity="0.45" fill="none" />
-        <line x1="474" y1="300" x2="490" y2="300" stroke="#22d3ee" strokeWidth="1.3" strokeOpacity="0.6" />
-        <line x1="510" y1="300" x2="526" y2="300" stroke="#22d3ee" strokeWidth="1.3" strokeOpacity="0.6" />
-        <line x1="500" y1="274" x2="500" y2="290" stroke="#22d3ee" strokeWidth="1.3" strokeOpacity="0.6" />
-        <line x1="500" y1="310" x2="500" y2="326" stroke="#22d3ee" strokeWidth="1.3" strokeOpacity="0.6" />
-        <text x="524" y="318" fill="#22d3ee" fontSize="9" fontFamily="monospace" opacity="0.6">
-          AZ {Math.round(radarSweepDeg).toString().padStart(3, '0')}°
-        </text>
-      </svg>
-
-      {/* Center Gunsight Overlay for Gunner Sight Mode */}
+      {/* Dynamic Gunner Sight Mode Overlay (Moves with Target Lock or Cursor!) */}
       {cameraMode === 'gunner' && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="relative w-56 h-56 border border-rose-500/40 rounded-full flex items-center justify-center">
-            <div className="w-2.5 h-2.5 bg-rose-500 rounded-full animate-ping" />
-            <div className="absolute top-0 w-0.5 h-8 bg-rose-500/80" />
-            <div className="absolute bottom-0 w-0.5 h-8 bg-rose-500/80" />
-            <div className="absolute left-0 h-0.5 w-8 bg-rose-500/80" />
-            <div className="absolute right-0 h-0.5 w-8 bg-rose-500/80" />
+        <div
+          style={{
+            left: `${selectedTargetProj ? selectedTargetProj.x : aimX}px`,
+            top: `${selectedTargetProj ? selectedTargetProj.y : aimY}px`,
+            transform: 'translate(-50%, -50%)'
+          }}
+          className="absolute pointer-events-none z-10 transition-[left,top] duration-75 ease-out"
+        >
+          <div className="relative w-48 h-48 border border-rose-500/45 rounded-full flex items-center justify-center">
+            <div className="w-2 h-2 bg-rose-500 rounded-full animate-ping" />
+            <div className="absolute top-0 w-0.5 h-6 bg-rose-500/80" />
+            <div className="absolute bottom-0 w-0.5 h-6 bg-rose-500/80" />
+            <div className="absolute left-0 h-0.5 w-6 bg-rose-500/80" />
+            <div className="absolute right-0 h-0.5 w-6 bg-rose-500/80" />
 
-            <div className="absolute -top-8 text-[11px] font-mono text-rose-400 font-bold bg-black/70 px-2.5 py-0.5 rounded border border-rose-500/30">
-              30mm CIWS / DEW SIGHT [BORESIGHT]
+            <div className="absolute -top-7 text-[10px] font-mono text-rose-300 font-bold bg-black/75 px-2 py-0.5 rounded border border-rose-500/30 whitespace-nowrap">
+              30mm CIWS / DEW SIGHT · AZ {headingDeg}° EL {pitchDeg}°
             </div>
             {selectedDrone && (
-              <div className="absolute -bottom-9 text-[11px] font-mono text-cyan-300 bg-black/70 px-2.5 py-0.5 rounded border border-cyan-500/30">
-                DIST: {selectedDrone.distanceToBase}m | LEAD COMPENSATED
+              <div className="absolute -bottom-7 text-[10px] font-mono text-cyan-300 bg-black/75 px-2 py-0.5 rounded border border-cyan-500/30 whitespace-nowrap">
+                DIST: {selectedDrone.distanceToBase}m | {selectedDrone.instanceId.toUpperCase()} SLAVED
               </div>
             )}
           </div>

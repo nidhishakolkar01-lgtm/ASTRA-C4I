@@ -613,6 +613,27 @@ export const SmartCombatConsole: React.FC<SmartCombatConsoleProps> = ({
               </button>
             </div>
 
+            {/* 4-Stage C-UAS Kill-Chain Progression Strip */}
+            <div className="grid grid-cols-4 gap-1 text-[7px] font-mono text-center">
+              {[
+                { step: '1.DETECT', done: true },
+                { step: '2.LOCK', done: Boolean(selectedDroneId) },
+                { step: '3.CLASS', done: Boolean(selectedDrone.classifiedAs && selectedDrone.classifiedAs !== 'unknown') },
+                { step: '4.ENGAGE', done: masterArm === 'ARMED' && isTargetInRange }
+              ].map((s, idx) => (
+                <div
+                  key={idx}
+                  className={`py-0.5 rounded border font-bold transition-all ${
+                    s.done
+                      ? 'bg-emerald-500/20 border-emerald-400/60 text-emerald-300'
+                      : 'bg-slate-950/70 border-slate-800 text-slate-500'
+                  }`}
+                >
+                  {s.step}
+                </div>
+              ))}
+            </div>
+
             {/* Picture-in-Picture (PiP) Optical FLIR Target Cam */}
             <div className="rounded-lg bg-[#021210] border border-emerald-500/40 p-1.5 relative overflow-hidden">
               <div className="flex items-center justify-between text-[8px] font-mono mb-1">
