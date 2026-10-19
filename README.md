@@ -71,6 +71,32 @@ Modern asymmetric warfare (demonstrated in Ukraine, the Red Sea, and India's Nor
 - Integrated with the **WebXR Device API** and Three.js VR runtime.
 - Plug-and-play support for Meta Quest 2/3, HTC Vive, and Pico headsets with in-VR HUD reticles.
 
+### 5. ⚡ 45-Second SIH Jury Benchmark "Speed-Run" Drill
+- **1-Click Jury Assessment:** Dedicated `⚡ 45s JURY CHALLENGE` header button designed specifically for hackathon booth judging.
+- **High-Adrenaline Multi-Tier Intercept:** Spawns a diving Shahed-136 delta-wing loitering munition and 2 fast FPV kamikaze racing drones under compressed response windows.
+- **Dedicated Jury Scorecard:** Displays instant reaction speed (< 1.8s avg), Shahed neutralization confirmation, FPV kill ratio, and official jury rating.
+
+### 6. 🎧 High-Fidelity Multi-Node Tactical Audio FX Synthesizer
+- **100% Procedural Web Audio:** Zero external audio files or missing asset lag.
+- **30mm CIWS Rotary Cannon:** 50 rps multi-pulse noise burst with 58Hz-to-32Hz sub-bass thump.
+- **High-Energy Laser (DEW):** Dual-harmonic continuous beam (880Hz + 1760Hz) with optical cavitation drone.
+- **HPM/EMP Directional Discharge:** Dual-stage capacitive ionization with 2.2kHz-to-80Hz frequency drop.
+- **Detonation Sub-Bass Shockwave:** 38Hz deep acoustic cinematic rumble with exponential saturation.
+
+### 7. 🌐 3D Dynamic Boids Swarm Cohesion & RF Mesh Trails
+- **Live Peer-to-Peer RF Vector Links:** Dynamic Three.js line segments connecting swarm drones within 280m in real-time.
+- **Swarm Intelligence Visualized:** Visualizes decentralized Boids flight logic and RF mesh communication in the 3D battlespace.
+
+### 8. 📜 Official MoD / DSSC Certified Debrief Certificate & PDF Dossier
+- **Diploma-Grade Layout:** Dual toggle between **Official DSSC Certificate** and **Mission Dossier Report**.
+- **Accredited Verification:** Gold-embossed border, Ashoka/DSSC emblem, Grade ranking (Alpha-1 Distinction, Bravo-1 Commended), deterministic `SHA-256` audit hash, simulated QR matrix, and print-ready CSS for 1-click PDF export.
+
+### 9. 🎯 Dynamic Mouse-Tracking & Target-Snap Aiming Sight
+- **Smooth Mouse Following:** Replaced static center reticle with responsive fluid mouse targeting and magnetic target snapping when hovering near hostiles.
+- **4-Stage Kill Chain Telemetry:** Target Lock box, closure rate vectors, lead pipper indicator, and range gate rings.
+- **3-Mode HUD Declutter Switcher:** Toggle between `FULL`, `TACTICAL`, and `CLEAR` modes via keyboard shortcut `[H]`.
+- **Autonomous Jury Auto-Pilot AI Commander:** Hands-free demonstration mode with automated threat tracking and firing via keyboard shortcut `[P]`.
+
 ---
 
 ## 🛠️ Quick Start & Local Execution
