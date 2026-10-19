@@ -2,6 +2,51 @@ import { ScenarioDefinition } from '../types/simulation';
 
 export const DEFAULT_SCENARIOS: ScenarioDefinition[] = [
   {
+    id: 'sih_jury_benchmark_45s',
+    title: 'SIH 2026 Jury Benchmark: 45s High-Adrenaline Drill',
+    difficulty: 'Specialist',
+    terrain: 'border_outpost',
+    weather: 'clear',
+    timeOfDay: 'dusk',
+    radarJammingLevel: 0.15,
+    opticalFogLevel: 0.1,
+    rfNoiseLevel: 0.2,
+    description: 'Standardized 45-second high-adrenaline evaluation benchmark designed specifically for Smart India Hackathon (SIH 2026 PS-26247) jury evaluation. Tests multi-tier threat handling: Shahed-136 delta-wing dive, agile FPV kamikaze intercept, and rapid hard/soft-kill decisions under compressed response windows.',
+    urbanCollateralSensitive: false,
+    timeLimitSec: 45,
+    protectedAsset: {
+      name: 'Forward Command Bunker & Ammo Depot',
+      position: [0, 0, 0],
+      radius: 60,
+      maxAllowedDamage: 100
+    },
+    objectives: [
+      { id: 'obj_1', description: 'Acquire and track fast incoming Shahed-136 loitering munition', required: true, completed: false },
+      { id: 'obj_2', description: 'Neutralize low-altitude FPV kamikaze drones before perimeter breach', required: true, completed: false },
+      { id: 'obj_3', description: 'Maintain forward outpost integrity > 80% within 45 seconds', required: true, completed: false }
+    ],
+    drones: [
+      {
+        specId: 'loitering_shahed',
+        spawnPosition: [0, 240, -1100],
+        targetPosition: [0, 5, 0],
+        spawnDelaySec: 1
+      },
+      {
+        specId: 'fpv_kamikaze_strike',
+        spawnPosition: [-350, 70, -700],
+        targetPosition: [0, 5, 0],
+        spawnDelaySec: 4
+      },
+      {
+        specId: 'fpv_kamikaze_strike',
+        spawnPosition: [300, 90, -550],
+        targetPosition: [0, 5, 0],
+        spawnDelaySec: 12
+      }
+    ]
+  },
+  {
     id: 'op_trishul_border',
     title: 'Operation Trishul: Border Outpost Infiltration',
     difficulty: 'Recruit',

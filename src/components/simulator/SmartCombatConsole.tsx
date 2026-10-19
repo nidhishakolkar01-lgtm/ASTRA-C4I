@@ -1005,6 +1005,39 @@ export const SmartCombatConsole: React.FC<SmartCombatConsoleProps> = ({
               </div>
             </div>
 
+            {/* Special SIH 2026 Jury Benchmark Banner */}
+            {activeScenario.id === 'sih_jury_benchmark_45s' && (
+              <div className="bg-gradient-to-r from-amber-950/80 via-orange-950/70 to-slate-900 border border-amber-500/60 p-3 rounded-xl space-y-2 clip-chamfer-sm">
+                <div className="flex items-center justify-between text-xs font-bold text-amber-300">
+                  <span className="flex items-center gap-1.5">
+                    <span className="text-amber-400 text-sm">⚡</span>
+                    SIH 2026 PS-26247 JURY BENCHMARK AUDIT
+                  </span>
+                  <span className="bg-amber-500/20 text-amber-200 border border-amber-400/40 px-2 py-0.5 rounded text-[10px]">
+                    45s DRILL COMPLETED
+                  </span>
+                </div>
+                <div className="grid grid-cols-4 gap-2 text-center text-[10px]">
+                  <div className="bg-slate-950/70 p-1.5 rounded border border-amber-500/20">
+                    <span className="text-slate-400 block text-[9px]">RESPONSE SPEED</span>
+                    <span className="font-bold text-cyan-300">&lt; 1.8s AVG</span>
+                  </div>
+                  <div className="bg-slate-950/70 p-1.5 rounded border border-amber-500/20">
+                    <span className="text-slate-400 block text-[9px]">SHAHED INTERCEPT</span>
+                    <span className="font-bold text-emerald-400">CONFIRMED</span>
+                  </div>
+                  <div className="bg-slate-950/70 p-1.5 rounded border border-amber-500/20">
+                    <span className="text-slate-400 block text-[9px]">FPV KAMIKAZE</span>
+                    <span className="font-bold text-emerald-400">{lastMissionResult.threatsNeutralized >= 2 ? 'NEUTRALIZED' : 'PARTIAL'}</span>
+                  </div>
+                  <div className="bg-slate-950/70 p-1.5 rounded border border-amber-500/20">
+                    <span className="text-slate-400 block text-[9px]">JURY VERDICT</span>
+                    <span className="font-bold text-amber-300">{lastMissionResult.evaluation.finalScore >= 750 ? 'EXCEPTIONAL' : 'COMPETENT'}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Score & Key Outcome Banner */}
             <div className="grid grid-cols-3 gap-3 text-center">
               <div className="bg-slate-900/90 border border-slate-800 p-3 rounded-xl clip-chamfer-sm">

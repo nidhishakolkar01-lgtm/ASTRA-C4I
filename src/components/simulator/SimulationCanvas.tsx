@@ -71,6 +71,7 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const droneMeshesRef = useRef<Map<string, THREE.Group>>(new Map());
+  const swarmMeshLinesRef = useRef<THREE.LineSegments | null>(null);
   const ballisticFXRef = useRef<BallisticFXEngine | null>(null);
   const vrButtonContainerRef = useRef<HTMLDivElement>(null);
 
@@ -495,6 +496,49 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
 
       group.visible = drone.status !== 'destroyed';
     });
+
+    // Boids Swarm Inter-Node P2P RF Mesh Vector Lines (3D Visual Flocking Links)
+    const flyingSwarmDrones = drones.filter(d => d.status === 'flying' && d.swarmId);
+    const linePositions: number[] = [];
+    const maxMeshDist = 280; // Render mesh links between swarm nodes within 280m
+
+    for (let i = 0; i < flyingSwarmDrones.length; i++) {
+      for (let j = i + 1; j < flyingSwarmDrones.length; j++) {
+        const d1 = flyingSwarmDrones[i];
+        const d2 = flyingSwarmDrones[j];
+        if (d1.swarmId === d2.swarmId) {
+          const dx = d1.position[0] - d2.position[0];
+          const dy = d1.position[1] - d2.position[1];
+          const dz = d1.position[2] - d2.position[2];
+          const dist = Math.hypot(dx, dy, dz);
+          if (dist <= maxMeshDist) {
+            linePositions.push(...d1.position, ...d2.position);
+          }
+        }
+      }
+    }
+
+    if (!swarmMeshLinesRef.current) {
+      const lineGeo = new THREE.BufferGeometry();
+      lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+      const lineMat = new THREE.LineBasicMaterial({
+        color: 0x00f0ff,
+        transparent: true,
+        opacity: 0.35,
+        blending: THREE.AdditiveBlending
+      });
+      const lineSegs = new THREE.LineSegments(lineGeo, lineMat);
+      lineSegs.name = 'swarm_p2p_mesh_vectors';
+      scene.add(lineSegs);
+      swarmMeshLinesRef.current = lineSegs;
+    } else {
+      swarmMeshLinesRef.current.geometry.setAttribute(
+        'position',
+        new THREE.Float32BufferAttribute(linePositions, 3)
+      );
+      swarmMeshLinesRef.current.geometry.attributes.position.needsUpdate = true;
+      swarmMeshLinesRef.current.visible = linePositions.length > 0;
+    }
   }, [drones, selectedDroneId]);
 
   // Handle Dynamic Ballistic FX Firing Events

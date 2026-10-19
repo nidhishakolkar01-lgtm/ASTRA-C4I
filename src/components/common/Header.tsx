@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSimulator } from '../../context/SimulatorContext';
-import { Shield, Volume2, VolumeX, Mic, MicOff, User, Play, Award, Sliders, Bot, BookOpen, Radio, Clock, Eye, Cpu } from 'lucide-react';
+import { Shield, Volume2, VolumeX, Mic, MicOff, User, Play, Award, Sliders, Bot, BookOpen, Radio, Clock, Eye, Cpu, Zap } from 'lucide-react';
+import { DEFAULT_SCENARIOS } from '../../data/defaultScenarios';
 
 interface Props {
   activeView: 'SIMULATOR' | 'AAR' | 'STUDIO' | 'INSTRUCTOR' | 'AI_ADVISOR' | 'MANUAL';
@@ -18,7 +19,8 @@ export const Header: React.FC<Props> = ({ activeView, setActiveView }) => {
     hudMode,
     setHudMode,
     juryAutoPilot,
-    toggleJuryAutoPilot
+    toggleJuryAutoPilot,
+    startScenario
   } = useSimulator();
   
   const [showEditProfile, setShowEditProfile] = useState(false);
@@ -39,6 +41,14 @@ export const Header: React.FC<Props> = ({ activeView, setActiveView }) => {
   const handleSaveProfile = () => {
     updateTraineeInfo(name, rank, unit);
     setShowEditProfile(false);
+  };
+
+  const handleStartJuryDrill = () => {
+    const benchmark = DEFAULT_SCENARIOS.find(s => s.id === 'sih_jury_benchmark_45s');
+    if (benchmark) {
+      startScenario(benchmark);
+      setActiveView('SIMULATOR');
+    }
   };
 
   return (
@@ -179,6 +189,17 @@ export const Header: React.FC<Props> = ({ activeView, setActiveView }) => {
 
         {/* HUD Declutter Mode Switcher & Jury Auto-Pilot + Audio Controls */}
         <div className="flex items-center gap-1.5">
+          {/* 1-Click SIH 2026 45s Benchmark Challenge Button */}
+          <button
+            onClick={handleStartJuryDrill}
+            className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white px-2.5 py-1 rounded text-[10px] font-black tracking-wider transition-all shadow-lg glow-amber clip-chamfer-sm border border-amber-300/40"
+            title="Launch 45-Second High-Adrenaline Evaluation Benchmark for SIH 2026 Jury Assessment"
+          >
+            <Zap className="w-3.5 h-3.5 fill-white text-white animate-pulse" />
+            <span className="hidden sm:inline">⚡ 45s JURY CHALLENGE</span>
+            <span className="sm:hidden">45s JURY</span>
+          </button>
+
           {/* 3-Mode HUD Declutter Switcher (Visible in Simulator view) */}
           {activeView === 'SIMULATOR' && (
             <div className="hidden md:flex items-center bg-slate-950/90 border border-cyan-500/30 rounded p-0.5 gap-0.5" title="Switch HUD Declutter Mode [Key: H]">
