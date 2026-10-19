@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "start": "node server.cjs",
     "preview": "vite preview",
     "electron:start": "electron .",
     "electron:dev": "vite --port 5173 & electron .",
